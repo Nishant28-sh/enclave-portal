@@ -3,7 +3,7 @@ import logger from "../utils/logger.js";
 
 const connectDB = async () => {
   try {
-    const connection = await mongoose.connect("mongodb+srv://nishantsharma9034:nishantSHARMA@nishant.mskxeu0.mongodb.net/Enclave-portal?retryWrites=true&w=majority", {});
+    const connection = await mongoose.connect(process.env.MONGODB_URI, {});
 
     logger.info(
       `MongoDB Connected : ${connection.connection.host}`
