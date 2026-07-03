@@ -69,7 +69,7 @@ function ContactForm() {
       <h2>Send us a Message</h2>
 
       <p className="form-description">
-        Fill out the form below and we'll get back to you as soon as possible.
+        Fill out the form below and we&apos;ll get back to you as soon as possible.
       </p>
 
       {serverMessage && (
@@ -148,7 +148,7 @@ function ContactForm() {
         </div>
 
         <button className="submit-btn" type="submit" disabled={loading}>
-          {loading ? "Submitting..." : "Send Message"}
+          {loading ? "Submitting" : "Send Message"}
         </button>
       </form>
     </div>

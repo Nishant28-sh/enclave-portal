@@ -26,16 +26,55 @@ export const submitContact = async (formData) => {
       throw error.response.data;
     }
 
-    if (error.request) {
-      throw {
-        success: false,
-        message: "Unable to reach the server. Please try again later.",
-      };
+    throw {
+      success: false,
+      message: "Unable to connect to the server.",
+    };
+  }
+};
+
+/*
+|--------------------------------------------------------------------------
+| Get All Contacts  (Admin)
+|--------------------------------------------------------------------------
+*/
+
+export const getContacts = async () => {
+  try {
+    const response = await api.get("/admin/contacts");
+
+    return response.data;
+  } catch (error) {
+    if (error.response) {
+      throw error.response.data;
     }
 
     throw {
       success: false,
-      message: "Something went wrong.",
+      message: "Unable to fetch contacts.",
+    };
+  }
+};
+
+/*
+|--------------------------------------------------------------------------
+| Delete Contact  (Admin)
+|--------------------------------------------------------------------------
+*/
+
+export const deleteContact = async (id) => {
+  try {
+    const response = await api.delete(`/admin/contacts/${id}`);
+
+    return response.data;
+  } catch (error) {
+    if (error.response) {
+      throw error.response.data;
+    }
+
+    throw {
+      success: false,
+      message: "Unable to delete contact.",
     };
   }
 };
