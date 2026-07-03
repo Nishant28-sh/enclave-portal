@@ -26,6 +26,11 @@ const contactSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
+
+    imageUrl: {
+      type: String,
+      default: null,
+    },
   },
   {
     timestamps: true,

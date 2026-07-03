@@ -1,13 +1,25 @@
 import Contact from "../models/Contact.js";
 import logger from "../utils/logger.js";
+import { uploadToCloudinary } from "../config/cloudinary.js";
 
 /**
- * @desc    Create Contact Message
+ * @desc    Create Contact Message (with optional image upload)
  * @route   POST /api/contact
  */
 export const createContact = async (req, res, next) => {
   try {
-    const contact = await Contact.create(req.body);
+    let imageUrl = null;
+
+    // If a file was attached, upload it to Cloudinary
+    if (req.file) {
+      const result = await uploadToCloudinary(req.file.buffer);
+      imageUrl = result.secure_url;
+    }
+
+    const contact = await Contact.create({
+      ...req.body,
+      imageUrl,
+    });
 
     logger.info(`New contact submitted by ${contact.email}`);
 
@@ -23,7 +35,7 @@ export const createContact = async (req, res, next) => {
 
 /**
  * @desc    Get All Contacts
- * @route   GET /api/contact
+ * @route   GET /api/contact  |  GET /api/admin/contacts
  */
 export const getAllContacts = async (req, res, next) => {
   try {
@@ -43,7 +55,7 @@ export const getAllContacts = async (req, res, next) => {
 
 /**
  * @desc    Delete Contact
- * @route   DELETE /api/contact/:id
+ * @route   DELETE /api/contact/:id  |  DELETE /api/admin/contacts/:id
  */
 export const deleteContact = async (req, res, next) => {
   try {

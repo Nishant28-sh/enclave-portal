@@ -23,6 +23,8 @@ const contactSchema = z.object({
     .trim()
     .min(20, "Message must contain at least 20 characters.")
     .max(500, "Message cannot exceed 500 characters."),
+
+  imageUrl: z.string().url().optional().nullable(),
 });
 
 export default contactSchema;

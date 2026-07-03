@@ -3,7 +3,6 @@ function ContactTable({ contacts, onDelete }) {
     return (
       <div className="empty-state">
         <h3>No Contacts Found</h3>
-
         <p>No users have submitted the contact form yet.</p>
       </div>
     );
@@ -15,6 +14,7 @@ function ContactTable({ contacts, onDelete }) {
         <thead>
           <tr>
             <th>#</th>
+            <th>Image</th>
             <th>Name</th>
             <th>Email</th>
             <th>Subject</th>
@@ -28,6 +28,20 @@ function ContactTable({ contacts, onDelete }) {
           {contacts.map((contact, index) => (
             <tr key={contact._id}>
               <td>{index + 1}</td>
+
+              <td>
+                {contact.imageUrl ? (
+                  <a href={contact.imageUrl} target="_blank" rel="noopener noreferrer">
+                    <img
+                      src={contact.imageUrl}
+                      alt={`${contact.name}'s attachment`}
+                      className="table-thumb"
+                    />
+                  </a>
+                ) : (
+                  <span className="no-image">—</span>
+                )}
+              </td>
 
               <td>{contact.name}</td>
 
