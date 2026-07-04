@@ -1,27 +1,21 @@
 import { Router } from "express";
-import {
-  getAllContacts,
-  deleteContact,
-} from "../controllers/contact.controller.js";
+import { login, verifyToken } from "../controllers/auth.controller.js";
 import authMiddleware from "../middlewares/auth.middleware.js";
 
 const router = Router();
 
-// All admin routes require a valid JWT
-router.use(authMiddleware);
+/*
+|--------------------------------------------------------------------------
+| POST /api/auth/login
+|--------------------------------------------------------------------------
+*/
+router.post("/login", login);
 
 /*
 |--------------------------------------------------------------------------
-| GET /api/admin/contacts
+| GET /api/auth/verify  — protected; client calls this to re-check token
 |--------------------------------------------------------------------------
 */
-router.get("/contacts", getAllContacts);
-
-/*
-|--------------------------------------------------------------------------
-| DELETE /api/admin/contacts/:id
-|--------------------------------------------------------------------------
-*/
-router.delete("/contacts/:id", deleteContact);
+router.get("/verify", authMiddleware, verifyToken);
 
 export default router;

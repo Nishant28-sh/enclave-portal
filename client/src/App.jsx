@@ -1,55 +1,58 @@
 import { lazy, Suspense } from "react";
-import { NavLink, Route, Routes } from "react-router-dom";
+import { NavLink, Route, Routes, useLocation } from "react-router-dom";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 const ContactForm = lazy(() => import("./components/ContactForm"));
-
 const Admin = lazy(() => import("./pages/Admin"));
+const Login = lazy(() => import("./pages/Login"));
 
 function App() {
+  const location = useLocation();
+  const isLoginPage = location.pathname === "/login";
+
   return (
     <main className="app">
-      <section className="container">
+      <section className={isLoginPage ? "container container--login" : "container"}>
 
-        <div className="hero">
+        {/* Hero section — hidden on login page */}
+        {!isLoginPage && (
+          <div className="hero">
+            <p className="badge">Production Ready Contact Portal</p>
 
-          <p className="badge">Production Ready Contact Portal</p>
+            <h1>
+              Secure Contact
+              <br />
+              Portal
+            </h1>
 
-          <h1>
-            Secure Contact
-            <br />
-            Portal
-          </h1>
+            <p className="subtitle">
+              Demonstrating React, Express, MongoDB,
+              Zod Validation, Rate Limiting,
+              Morgan, Winston Logging,
+              Helmet and Cloudflare.
+            </p>
 
-          <p className="subtitle">
-            Demonstrating React, Express, MongoDB,
-            Zod Validation, Rate Limiting,
-            Morgan, Winston Logging,
-            Helmet and Cloudflare.
-          </p>
+            <div className="nav-buttons">
+              <NavLink
+                to="/"
+                className={({ isActive }) =>
+                  isActive ? "nav-btn active" : "nav-btn"
+                }
+              >
+                Contact Form
+              </NavLink>
 
-          <div className="nav-buttons">
-
-            <NavLink
-              to="/"
-              className={({ isActive }) =>
-                isActive ? "nav-btn active" : "nav-btn"
-              }
-            >
-              Contact Form
-            </NavLink>
-
-            <NavLink
-              to="/admin"
-              className={({ isActive }) =>
-                isActive ? "nav-btn active" : "nav-btn"
-              }
-            >
-              Admin Dashboard
-            </NavLink>
-
+              <NavLink
+                to="/admin"
+                className={({ isActive }) =>
+                  isActive ? "nav-btn active" : "nav-btn"
+                }
+              >
+                Admin Dashboard
+              </NavLink>
+            </div>
           </div>
-
-        </div>
+        )}
 
         <Suspense
           fallback={
@@ -59,17 +62,18 @@ function App() {
           }
         >
           <Routes>
+            <Route path="/" element={<ContactForm />} />
 
-            <Route
-              path="/"
-              element={<ContactForm />}
-            />
+            <Route path="/login" element={<Login />} />
 
             <Route
               path="/admin"
-              element={<Admin />}
+              element={
+                <ProtectedRoute>
+                  <Admin />
+                </ProtectedRoute>
+              }
             />
-
           </Routes>
         </Suspense>
 
