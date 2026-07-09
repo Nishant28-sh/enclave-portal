@@ -5,6 +5,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 const ContactForm = lazy(() => import("./components/ContactForm"));
 const Admin = lazy(() => import("./pages/Admin"));
 const Login = lazy(() => import("./pages/Login"));
+import ChatBot from "./components/ChatBot";
 
 function App() {
   const location = useLocation();
@@ -78,6 +79,9 @@ function App() {
         </Suspense>
 
       </section>
+
+      {/* AI Chatbot — available on every page */}
+      <ChatBot />
     </main>
   );
 }

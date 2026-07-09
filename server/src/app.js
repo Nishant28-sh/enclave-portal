@@ -8,6 +8,7 @@ import logger from "./utils/logger.js";
 import contactRoutes from "./routes/contact.routes.js";
 import adminRoutes from "./routes/admin.routes.js";
 import authRoutes from "./routes/auth.routes.js";
+import chatRoutes from "./routes/chat.routes.js";
 
 import notFound from "./middlewares/notFound.middleware.js";
 import errorHandler from "./middlewares/error.middleware.js";
@@ -79,6 +80,8 @@ app.use("/api/auth", authRoutes);
 app.use("/api/contact", contactRoutes);
 
 app.use("/api/admin", adminRoutes);
+
+app.use("/api", chatRoutes);
 
 /*
 |--------------------------------------------------------------------------
