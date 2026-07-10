@@ -10,7 +10,7 @@ import axios from "axios";
 */
 const chatApi = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL,
-  timeout: 60000, // 60 seconds — Gemini can take time for detailed answers
+  timeout: 120000, // 120s — covers server-side retry waits on 429 rate limits
 });
 
 /*
