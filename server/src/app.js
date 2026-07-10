@@ -23,9 +23,19 @@ const app = express();
 
 app.use(helmet());
 
+// Support multiple allowed origins (comma-separated in CLIENT_URL env var)
+const ALLOWED_ORIGINS = process.env.CLIENT_URL
+  ? process.env.CLIENT_URL.split(",").map((o) => o.trim())
+  : ["http://localhost:5173"];
+
 app.use(
   cors({
-    origin: process.env.CLIENT_URL || "http://localhost:5173",
+    origin: (origin, callback) => {
+      // Allow requests with no origin (e.g. curl, Postman, server-to-server)
+      if (!origin) return callback(null, true);
+      if (ALLOWED_ORIGINS.includes(origin)) return callback(null, true);
+      callback(new Error(`CORS: origin ${origin} not allowed`));
+    },
     methods: ["GET", "POST", "DELETE", "PUT"],
     allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,
