@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { sendChatMessage } from "../services/chat.service";
+import { sendChatMessage } from "../services/gemini.client";
 
 /* -----------------------------------------------------------------------
    ChatBot — Professional AI assistant UI
