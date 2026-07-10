@@ -10,7 +10,7 @@ import { sendChatMessage } from "../services/chat.service";
 ----------------------------------------------------------------------- */
 
 const STORAGE_KEY  = "enclave_chat_sessions";
-const WELCOME_TEXT = "Hello! I'm Enclave AI, powered by Gemini 2.5 Flash. Ask me anything — I'm here to help.";
+const WELCOME_TEXT = "Hello! I'm Enclave AI, powered by Gemini 2.0 Flash. Ask me anything — I'm here to help.";
 const WELCOME_MSG  = { role: "model", parts: [{ text: WELCOME_TEXT }], ts: Date.now() };
 
 // ── SVG Icons ────────────────────────────────────────────────────────────
@@ -327,7 +327,7 @@ export default function ChatBot() {
                 <p className="cb-header-name">Enclave AI</p>
                 <p className="cb-header-sub">
                   <span className="cb-online-dot" />
-                  Gemini 2.5 Flash
+                  Gemini 2.0 Flash
                 </p>
               </div>
             </div>
