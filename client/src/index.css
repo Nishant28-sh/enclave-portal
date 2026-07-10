@@ -1619,3 +1619,75 @@ textarea:disabled {
   color: var(--red);
   margin-left: 4px;
 }
+
+/* =========================================================
+   CHATBOT — TEXT-TO-SPEECH STYLES
+========================================================= */
+
+/* Speaking bubble highlight */
+.chatbot-bubble--speaking {
+  border-color: var(--blue) !important;
+  box-shadow: 4px 4px 0 var(--blue) !important;
+  animation: speakingPulse 1.2s ease infinite;
+}
+@keyframes speakingPulse {
+  0%,100% { opacity: 1; }
+  50%      { opacity: .75; }
+}
+
+/* Stop button in header while speaking */
+.chatbot-icon-btn--speaking {
+  background: var(--red) !important;
+  border-color: var(--red) !important;
+  color: white !important;
+  animation: stopPulse 0.8s ease infinite;
+}
+@keyframes stopPulse {
+  0%,100% { opacity: 1; }
+  50%      { opacity: .6; }
+}
+
+/* Bubble footer (timestamp + speak btn) */
+.chatbot-bubble-footer {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.chatbot-bubble-footer--user {
+  justify-content: flex-end;
+}
+
+/* Per-bubble speak button */
+.chatbot-speak-btn {
+  background: transparent;
+  border: 1.5px solid #ddd;
+  color: #999;
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px;
+  cursor: pointer;
+  transition: var(--transition);
+  flex-shrink: 0;
+  opacity: 0;
+  transform: scale(0.8);
+}
+/* Show speak btn on bubble hover */
+.chatbot-bubble-wrapper:hover .chatbot-speak-btn {
+  opacity: 1;
+  transform: scale(1);
+}
+.chatbot-speak-btn--active {
+  opacity: 1 !important;
+  transform: scale(1) !important;
+  background: var(--blue);
+  border-color: var(--blue);
+  color: white;
+}
+.chatbot-speak-btn:hover {
+  background: var(--blue);
+  border-color: var(--blue);
+  color: white;
+  opacity: 1;
+  transform: scale(1);
+}

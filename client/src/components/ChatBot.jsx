@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, useId } from "react";
 import { sendChatMessage } from "../services/chat.service";
 
 /* -----------------------------------------------------------------------
@@ -6,6 +6,7 @@ import { sendChatMessage } from "../services/chat.service";
    Features:
    • Persistent chat history (localStorage) with session management
    • Voice input via Web Speech API
+   • Text-to-Speech — auto-speak AI replies + per-bubble replay
    • Typing indicator, error handling, keyboard shortcuts
 ----------------------------------------------------------------------- */
 
@@ -49,10 +50,50 @@ export default function ChatBot() {
   const [error, setError]         = useState(null);
   const [isListening, setIsListening] = useState(false);
   const [micError, setMicError]   = useState(null);
+  const [autoSpeak, setAutoSpeak] = useState(
+    () => localStorage.getItem("enclave_autospeak") !== "off"
+  );
+  const [isSpeaking, setIsSpeaking]   = useState(false);
+  const [speakingIdx, setSpeakingIdx] = useState(null);
 
-  const bottomRef   = useRef(null);
-  const inputRef    = useRef(null);
+  const bottomRef      = useRef(null);
+  const inputRef       = useRef(null);
   const recognitionRef = useRef(null);
+
+  // ── TTS helpers ──────────────────────────────────────────────────────
+  const stopSpeaking = useCallback(() => {
+    window.speechSynthesis?.cancel();
+    setIsSpeaking(false);
+    setSpeakingIdx(null);
+  }, []);
+
+  const speakText = useCallback((text, idx = null) => {
+    if (!window.speechSynthesis) return;
+    stopSpeaking();
+    // Strip emoji and markdown for cleaner speech
+    const clean = text.replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F9FF}]/gu, "").replace(/[*_`#>]/g, "").trim();
+    const utt = new SpeechSynthesisUtterance(clean);
+    utt.rate  = 1;
+    utt.pitch = 1;
+    utt.lang  = "en-US";
+    utt.onstart = () => { setIsSpeaking(true); setSpeakingIdx(idx); };
+    utt.onend   = () => { setIsSpeaking(false); setSpeakingIdx(null); };
+    utt.onerror = () => { setIsSpeaking(false); setSpeakingIdx(null); };
+    window.speechSynthesis.speak(utt);
+  }, [stopSpeaking]);
+
+  // Stop speaking when chat closes
+  useEffect(() => { if (!isOpen) stopSpeaking(); }, [isOpen, stopSpeaking]);
+
+  // Toggle autoSpeak preference
+  const toggleAutoSpeak = () => {
+    setAutoSpeak((prev) => {
+      const next = !prev;
+      localStorage.setItem("enclave_autospeak", next ? "on" : "off");
+      if (!next) stopSpeaking();
+      return next;
+    });
+  };
 
   // ── Auto-scroll ──────────────────────────────────────────────────────
   useEffect(() => {
@@ -103,10 +144,15 @@ export default function ChatBot() {
     try {
       const history = updatedMessages.slice(0, -1);
       const { reply } = await sendChatMessage(text, history);
-      setMessages((prev) => [
-        ...prev,
-        { role: "model", parts: [{ text: reply }], ts: Date.now() },
-      ]);
+      setMessages((prev) => {
+        const next = [...prev, { role: "model", parts: [{ text: reply }], ts: Date.now() }];
+        // Auto-speak the new AI reply
+        if (autoSpeak) {
+          // Use setTimeout so state settles before speaking
+          setTimeout(() => speakText(reply, next.length - 1), 150);
+        }
+        return next;
+      });
     } catch (err) {
       setError(err.error || "Something went wrong. Please try again.");
     } finally {
@@ -249,6 +295,26 @@ export default function ChatBot() {
               >
                 ✏️
               </button>
+              {/* Auto-speak toggle */}
+              <button
+                className={`chatbot-icon-btn${autoSpeak ? " chatbot-icon-btn--active" : ""}`}
+                onClick={toggleAutoSpeak}
+                title={autoSpeak ? "Auto-speak ON (click to mute)" : "Auto-speak OFF (click to enable)"}
+                aria-label="Toggle auto-speak"
+              >
+                {autoSpeak ? "🔊" : "🔇"}
+              </button>
+              {/* Stop speaking */}
+              {isSpeaking && (
+                <button
+                  className="chatbot-icon-btn chatbot-icon-btn--speaking"
+                  onClick={stopSpeaking}
+                  title="Stop speaking"
+                  aria-label="Stop speaking"
+                >
+                  ⏹
+                </button>
+              )}
               {/* Close */}
               <button
                 className="chatbot-close-btn"
@@ -318,13 +384,30 @@ export default function ChatBot() {
                       )}
                       <div className={`chatbot-bubble-group ${isUser ? "chatbot-bubble-group--user" : ""}`}>
                         <div
-                          className={`chatbot-bubble ${isUser ? "chatbot-bubble--user" : "chatbot-bubble--model"}`}
+                          className={`chatbot-bubble ${isUser ? "chatbot-bubble--user" : "chatbot-bubble--model"}${
+                            speakingIdx === i ? " chatbot-bubble--speaking" : ""
+                          }`}
                         >
                           {msg.parts[0].text}
                         </div>
-                        {msg.ts && (
-                          <span className="chatbot-timestamp">{formatTime(msg.ts)}</span>
-                        )}
+                        <div className={`chatbot-bubble-footer ${isUser ? "chatbot-bubble-footer--user" : ""}`}>
+                          {msg.ts && (
+                            <span className="chatbot-timestamp">{formatTime(msg.ts)}</span>
+                          )}
+                          {/* Speak button — only on AI bubbles */}
+                          {!isUser && (
+                            <button
+                              className={`chatbot-speak-btn${speakingIdx === i ? " chatbot-speak-btn--active" : ""}`}
+                              onClick={() =>
+                                speakingIdx === i ? stopSpeaking() : speakText(msg.parts[0].text, i)
+                              }
+                              title={speakingIdx === i ? "Stop" : "Read aloud"}
+                              aria-label={speakingIdx === i ? "Stop speaking" : "Read message aloud"}
+                            >
+                              {speakingIdx === i ? "⏹" : "🔊"}
+                            </button>
+                          )}
+                        </div>
                       </div>
                     </div>
                   );
