@@ -140,9 +140,11 @@ export default function ChatBot() {
   const [isSpeaking, setIsSpeaking]   = useState(false);
   const [speakingIdx, setSpeakingIdx] = useState(null);
 
-  const bottomRef      = useRef(null);
-  const inputRef       = useRef(null);
-  const recognitionRef = useRef(null);
+  const bottomRef        = useRef(null);
+  const inputRef         = useRef(null);
+  const recognitionRef   = useRef(null);
+  // Stable ID for the current session — only changes when New Chat is clicked
+  const sessionIdRef     = useRef(Date.now().toString());
 
   // ── TTS ──────────────────────────────────────────────────────────────
   const stopSpeaking = useCallback(() => {
@@ -192,12 +194,25 @@ export default function ChatBot() {
   }, [isOpen, view]);
 
   // ── Auto-save session ─────────────────────────────────────────────────
+  // Save current session whenever messages settle (not while loading)
   useEffect(() => {
     const hasUser = messages.some((m) => m.role === "user");
     if (!hasUser || loading) return;
+    const id = sessionIdRef.current;
+    const session = {
+      id,
+      title: (() => {
+        const u = messages.find((m) => m.role === "user");
+        return u
+          ? u.parts[0].text.slice(0, 45) + (u.parts[0].text.length > 45 ? "..." : "")
+          : "New Conversation";
+      })(),
+      messages,
+      createdAt: Number(id),
+    };
     setSessions((prev) => {
-      const session = createSession(messages);
-      const rest = prev.filter((s) => s.id !== prev[0]?.id);
+      // Replace existing entry with same id, or prepend
+      const rest = prev.filter((s) => s.id !== id);
       const updated = [session, ...rest].slice(0, 30);
       saveSessions(updated);
       return updated;
@@ -236,21 +251,15 @@ export default function ChatBot() {
 
   // ── New chat ──────────────────────────────────────────────────────────
   const handleNewChat = () => {
-    const hasUser = messages.some((m) => m.role === "user");
-    if (hasUser) {
-      const session = createSession(messages);
-      setSessions((prev) => {
-        const rest = prev.filter((s) => s.id !== prev[0]?.id);
-        const updated = [session, ...rest].slice(0, 30);
-        saveSessions(updated);
-        return updated;
-      });
-    }
+    // Assign a fresh stable ID for the new session
+    sessionIdRef.current = Date.now().toString();
     setMessages([{ ...WELCOME_MSG, ts: Date.now() }]);
     setError(null); setView("chat");
   };
 
   const handleLoadSession = (s) => {
+    // Restore session id so future messages update the same session
+    sessionIdRef.current = s.id;
     setMessages(s.messages); setError(null); setView("chat");
   };
 
@@ -467,6 +476,10 @@ export default function ChatBot() {
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={handleKeyDown}
+                  onInput={(e) => {
+                    e.target.style.height = "20px";
+                    e.target.style.height = Math.min(e.target.scrollHeight, 90) + "px";
+                  }}
                   rows={1}
                   disabled={loading}
                 />

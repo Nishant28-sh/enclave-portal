@@ -1585,9 +1585,13 @@ textarea:disabled {
   color: #1a1a2e;
   background: transparent;
   font-family: inherit;
-  line-height: 1.4;
-  max-height: 96px;
+  line-height: 1.5;
+  height: 20px;
+  min-height: 20px;
+  max-height: 90px;
   overflow-y: auto;
+  display: block;
+  align-self: center;
 }
 .cb-input::placeholder { color: #b0b7c3; }
 
