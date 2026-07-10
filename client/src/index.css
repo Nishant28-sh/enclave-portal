@@ -1423,3 +1423,199 @@ textarea:disabled {
     font-size:22px;
   }
 }
+
+/* =========================================================
+   CHATBOT — HISTORY & MIC ADDITIONS
+========================================================= */
+
+/* Icon buttons in header (history, new chat) */
+.chatbot-icon-btn {
+  background: transparent;
+  border: 2px solid rgba(255,255,255,.3);
+  color: white;
+  width: 32px; height: 32px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px;
+  transition: var(--transition);
+  cursor: pointer;
+}
+.chatbot-icon-btn:hover {
+  background: rgba(255,255,255,.15);
+  border-color: white;
+}
+.chatbot-icon-btn--active {
+  background: var(--yellow);
+  border-color: var(--yellow);
+  color: #111;
+}
+
+/* -- History Panel -- */
+.chatbot-history {
+  flex: 1;
+  overflow-y: auto;
+  background: #faf5ee;
+  display: flex;
+  flex-direction: column;
+}
+.chatbot-history-heading {
+  font-weight: 800;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  padding: 14px 16px 8px;
+  color: #555;
+  border-bottom: 2px solid var(--border);
+  background: white;
+  flex-shrink: 0;
+}
+.chatbot-history-empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 32px 24px;
+  color: #888;
+  font-size: 13px;
+  text-align: center;
+}
+.chatbot-history-empty span {
+  font-size: 36px;
+  display: block;
+  margin-bottom: 4px;
+}
+.chatbot-session-list {
+  list-style: none;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.chatbot-session-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 12px;
+  background: white;
+  border: 2.5px solid var(--border);
+  box-shadow: 3px 3px 0 var(--border);
+  cursor: pointer;
+  transition: var(--transition);
+}
+.chatbot-session-item:hover {
+  transform: translate(-2px,-2px);
+  box-shadow: 6px 6px 0 var(--border);
+  background: #fffef8;
+}
+.chatbot-session-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  overflow: hidden;
+}
+.chatbot-session-title {
+  font-weight: 700;
+  font-size: 13px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #111;
+}
+.chatbot-session-meta {
+  font-size: 11px;
+  color: #888;
+}
+.chatbot-session-delete {
+  background: transparent;
+  border: 1.5px solid #ddd;
+  color: #888;
+  width: 26px; height: 26px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: var(--transition);
+}
+.chatbot-session-delete:hover {
+  background: var(--red);
+  border-color: var(--red);
+  color: white;
+}
+
+/* -- Bubble group (bubble + timestamp) -- */
+.chatbot-bubble-group {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  max-width: 78%;
+}
+.chatbot-bubble-group--user { align-items: flex-end; }
+.chatbot-timestamp {
+  font-size: 10px;
+  color: #aaa;
+  padding: 0 2px;
+}
+
+/* -- Mic button -- */
+.chatbot-mic-btn {
+  background: white;
+  border: none;
+  border-right: 3px solid var(--border);
+  color: #444;
+  width: 42px;
+  font-size: 16px;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.chatbot-mic-btn:hover:not(:disabled) {
+  background: #f0f4ff;
+  color: var(--blue);
+}
+.chatbot-mic-btn--active {
+  background: #fff0f0 !important;
+  color: var(--red) !important;
+  animation: micPulse 1s infinite;
+}
+.chatbot-mic-btn:disabled {
+  opacity: .4;
+  cursor: not-allowed;
+}
+@keyframes micPulse {
+  0%,100% { background: #fff0f0; }
+  50%      { background: #ffd5d5; }
+}
+
+/* -- Listening bar -- */
+.chatbot-listening-bar {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 14px;
+  background: #fff0f0;
+  border-top: 2px solid var(--red);
+  flex-shrink: 0;
+}
+.chatbot-listening-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--red);
+  animation: listeningBounce 0.9s infinite ease-in-out;
+}
+.chatbot-listening-dot:nth-child(2) { animation-delay: .15s; }
+.chatbot-listening-dot:nth-child(3) { animation-delay: .3s; }
+@keyframes listeningBounce {
+  0%,100% { transform: scaleY(1); opacity:.5; }
+  50%     { transform: scaleY(1.8); opacity:1; }
+}
+.chatbot-listening-text {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--red);
+  margin-left: 4px;
+}
