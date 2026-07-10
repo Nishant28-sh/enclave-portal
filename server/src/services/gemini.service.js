@@ -47,7 +47,9 @@ export async function getChatResponse(history = [], userMessage, attempt = 1) {
 
     // Auto-retry on rate limit: wait and try again (max 3 attempts)
     if (is429 && attempt < 4) {
-      const waitMs = attempt * 8000; // 8s, 16s, 24s
+      // Gemini rate limit resets in ~55s — waits: 20s, 40s, 65s
+      const waits = [20000, 40000, 65000];
+      const waitMs = waits[attempt - 1] || 65000;
       console.warn(`Gemini 429 rate limit — retrying in ${waitMs / 1000}s (attempt ${attempt}/3)`);
       await sleep(waitMs);
       return getChatResponse(history, userMessage, attempt + 1);
