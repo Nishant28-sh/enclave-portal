@@ -1,8 +1,9 @@
 import { Router } from "express";
-import { handleChat } from "../controllers/chat.controller.js";
+import { handleChat, handleImageChat } from "../controllers/chat.controller.js";
 
 const router = Router();
 
 router.post("/chat", handleChat);
+router.post("/chat/image", handleImageChat);
 
 export default router;

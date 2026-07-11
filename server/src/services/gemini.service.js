@@ -14,41 +14,76 @@ function getClient() {
 }
 
 const SYSTEM_PROMPT =
-  "You are Enclave AI, a helpful and friendly AI assistant. " +
-  "Answer clearly and concisely. If asked about yourself, say you are Enclave AI powered by Llama.";
+  "You are Enclave AI, a helpful and friendly AI assistant powered by Llama. " +
+  "Answer clearly and concisely. Format responses with markdown when helpful. " +
+  "If asked about yourself, say you are Enclave AI.";
 
 /**
- * Sends a message to Groq (Llama model) with conversation history.
- *
- * history items from client:
- * [{ role: "user"|"model", parts: [{ text: "..." }], ts: ... }]
- *
- * Groq uses OpenAI format:
- * [{ role: "user"|"assistant", content: "..." }]
+ * Standard chat — converts Gemini-format history to Groq/OpenAI format
  */
 export async function getChatResponse(history = [], userMessage) {
-  // Convert Gemini-format history to Groq/OpenAI format
-  // Strip leading "model" turns, convert "model" -> "assistant", drop extra fields
-  const safeHistory = [...history];
-  while (safeHistory.length > 0 && safeHistory[0].role !== "user") {
-    safeHistory.shift();
-  }
+  const safe = [...history];
+  while (safe.length > 0 && safe[0].role !== "user") safe.shift();
 
   const messages = [
     { role: "system", content: SYSTEM_PROMPT },
-    ...safeHistory.map(({ role, parts }) => ({
+    ...safe.map(({ role, parts }) => ({
       role: role === "model" ? "assistant" : "user",
       content: parts.map((p) => p.text).join(""),
     })),
     { role: "user", content: userMessage },
   ];
 
-  const response = await getClient().chat.completions.create({
-    model: "llama-3.1-8b-instant", // Fast, free, 14400 req/day
+  const res = await getClient().chat.completions.create({
+    model: "llama-3.1-8b-instant",
     messages,
     max_tokens: 1024,
     temperature: 0.7,
   });
 
-  return response.choices[0].message.content;
+  return res.choices[0].message.content;
+}
+
+/**
+ * Vision chat — analyze an uploaded image using Groq's vision model
+ * @param {string} imageBase64 - base64-encoded image data
+ * @param {string} mimeType    - e.g. "image/jpeg"
+ * @param {Array}  history     - chat history in Gemini format
+ * @param {string} userMessage - user's question about the image
+ */
+export async function getChatResponseWithImage(imageBase64, mimeType, history = [], userMessage) {
+  const safe = [...history];
+  while (safe.length > 0 && safe[0].role !== "user") safe.shift();
+
+  const priorMessages = safe.map(({ role, parts }) => ({
+    role: role === "model" ? "assistant" : "user",
+    content: parts.map((p) => p.text).join(""),
+  }));
+
+  const messages = [
+    { role: "system", content: SYSTEM_PROMPT },
+    ...priorMessages,
+    {
+      role: "user",
+      content: [
+        {
+          type: "image_url",
+          image_url: { url: `data:${mimeType};base64,${imageBase64}` },
+        },
+        {
+          type: "text",
+          text: userMessage || "What do you see in this image? Describe it in detail.",
+        },
+      ],
+    },
+  ];
+
+  const res = await getClient().chat.completions.create({
+    model: "meta-llama/llama-4-scout-17b-16e-instruct",
+    messages,
+    max_tokens: 1024,
+    temperature: 0.7,
+  });
+
+  return res.choices[0].message.content;
 }

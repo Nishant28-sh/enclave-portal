@@ -1717,3 +1717,166 @@ textarea:disabled {
 }
 .cb-session:hover .cb-session-del { opacity: 1; }
 .cb-session-del:hover { background: #fef2f2; color: #ef4444; }
+
+/* =========================================================
+   CHATBOT NEW FEATURES - Image Gen, File Upload, Export
+========================================================= */
+
+/* Tool buttons (paperclip + sparkle) */
+.cb-tool-btn {
+  width: 32px; height: 32px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  color: #6b7280;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background .15s, color .15s;
+}
+.cb-tool-btn:hover { background: #f3f4f6; color: #374151; }
+.cb-tool-btn:disabled { opacity: .4; cursor: not-allowed; }
+.cb-tool-btn--img { color: #8b5cf6; }
+.cb-tool-btn--img:hover { background: #f5f3ff; color: #7c3aed; }
+
+/* Upload preview strip */
+.cb-upload-strip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  background: #f9fafb;
+  border-top: 1px solid #e5e7eb;
+  animation: cb-slide-up .2s ease;
+}
+.cb-upload-thumb {
+  width: 40px; height: 40px;
+  border-radius: 8px;
+  object-fit: cover;
+  border: 1px solid #e5e7eb;
+  flex-shrink: 0;
+}
+.cb-upload-name {
+  flex: 1;
+  font-size: 12px;
+  color: #374151;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.cb-upload-clear {
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  border: none;
+  background: #e5e7eb;
+  color: #6b7280;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background .15s, color .15s;
+}
+.cb-upload-clear:hover { background: #fecaca; color: #ef4444; }
+
+/* Image bubbles */
+.cb-img-bubble {
+  max-width: 240px;
+  max-height: 240px;
+  width: 100%;
+  border-radius: 14px;
+  object-fit: cover;
+  display: block;
+  margin-bottom: 6px;
+  border: 1px solid rgba(0,0,0,.08);
+}
+.cb-img-bubble--gen {
+  max-width: 260px;
+  max-height: 260px;
+  border-radius: 14px;
+  box-shadow: 0 4px 20px rgba(139,92,246,.15);
+  border: 2px solid rgba(139,92,246,.2);
+  cursor: pointer;
+  transition: transform .2s, box-shadow .2s;
+}
+.cb-img-bubble--gen:hover { transform: scale(1.02); box-shadow: 0 8px 28px rgba(139,92,246,.25); }
+
+/* Generated image wrapper with download button */
+.cb-gen-img-wrap {
+  position: relative;
+  display: inline-block;
+  margin-bottom: 6px;
+}
+.cb-img-download {
+  position: absolute;
+  bottom: 10px;
+  right: 8px;
+  width: 28px; height: 28px;
+  border-radius: 8px;
+  background: rgba(0,0,0,.55);
+  color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  text-decoration: none;
+  opacity: 0;
+  transition: opacity .2s;
+}
+.cb-gen-img-wrap:hover .cb-img-download { opacity: 1; }
+
+/* Uploaded image preview in user bubble */
+.cb-uploaded-preview {
+  margin-bottom: 4px;
+}
+
+/* Image generation loading label */
+.cb-gen-label {
+  font-size: 12px;
+  color: #8b5cf6;
+  font-weight: 500;
+  letter-spacing: .02em;
+  animation: cb-pulse 1.4s ease-in-out infinite;
+}
+@keyframes cb-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: .4; }
+}
+
+/* Export dropdown menu */
+.cb-export-wrap { position: relative; }
+.cb-export-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0,0,0,.12);
+  padding: 6px;
+  min-width: 180px;
+  z-index: 200;
+  animation: cb-fade-in .15s ease;
+}
+@keyframes cb-fade-in {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.cb-export-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 9px 12px;
+  border: none;
+  background: transparent;
+  border-radius: 8px;
+  font-size: 13px;
+  color: #374151;
+  font-weight: 500;
+  cursor: pointer;
+  text-align: left;
+  transition: background .12s;
+}
+.cb-export-item:hover { background: #f3f4f6; }
+.cb-export-item span { font-size: 15px; }
+
+@keyframes cb-slide-up {
+  from { transform: translateY(6px); opacity: 0; }
+  to   { transform: translateY(0); opacity: 1; }
+}

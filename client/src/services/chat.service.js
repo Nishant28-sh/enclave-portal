@@ -1,41 +1,36 @@
 import axios from "axios";
 
-/*
-|--------------------------------------------------------------------------
-| Dedicated axios instance for chat — longer timeout for AI responses
-|--------------------------------------------------------------------------
-| The shared contact.service api instance has a 10s timeout which is too
-| short for complex Gemini responses. This instance uses 60s to handle
-| longer answers (e.g. "define hooks in react").
-*/
 const chatApi = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL,
-  timeout: 60000, // 60 seconds for Gemini responses
+  timeout: 60000,
 });
 
-/*
-|--------------------------------------------------------------------------
-| Send a chat message — POST /api/chat
-|--------------------------------------------------------------------------
-| Sends the user message together with the full conversation history so
-| the Gemini model can maintain context across turns.
-|
-| history format:
-| [
-|   { role: "user",  parts: [{ text: "hi" }] },
-|   { role: "model", parts: [{ text: "hello!" }] },
-|   ...
-| ]
-*/
+/** Send a plain text message */
 export const sendChatMessage = async (message, history = []) => {
   try {
-    const response = await chatApi.post("/chat", { message, history });
-    return response.data; // { reply: "..." }
-  } catch (error) {
-    if (error.response) throw error.response.data;
-    if (error.code === "ECONNABORTED") {
-      throw { error: "Response timed out. Please try a shorter question or try again." };
-    }
+    const res = await chatApi.post("/chat", { message, history });
+    return res.data;
+  } catch (err) {
+    if (err.response) throw err.response.data;
+    if (err.code === "ECONNABORTED") throw { error: "Response timed out. Please try again." };
+    throw { error: "Unable to connect to the server." };
+  }
+};
+
+/**
+ * Send a message with an uploaded image (vision analysis)
+ * @param {string} imageBase64 - base64 string (no data: prefix)
+ * @param {string} mimeType    - e.g. "image/jpeg"
+ * @param {string} message     - user's question
+ * @param {Array}  history     - chat history
+ */
+export const sendImageMessage = async (imageBase64, mimeType, message, history = []) => {
+  try {
+    const res = await chatApi.post("/chat/image", { imageBase64, mimeType, message, history });
+    return res.data;
+  } catch (err) {
+    if (err.response) throw err.response.data;
+    if (err.code === "ECONNABORTED") throw { error: "Image analysis timed out. Please try a smaller image." };
     throw { error: "Unable to connect to the server." };
   }
 };
