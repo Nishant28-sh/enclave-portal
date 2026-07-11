@@ -17,8 +17,8 @@ export async function handleChat(req, res) {
     if (msg.includes("429") || msg.toLowerCase().includes("rate")) {
       return res.status(429).json({ error: "Too many requests. Please wait a moment and try again." });
     }
-    if (msg.includes("401") || msg.toLowerCase().includes("api key") || msg.toLowerCase().includes("auth")) {
-      return res.status(500).json({ error: "AI service configuration error. Please contact support." });
+    if (msg.includes("GROQ_API_KEY missing") || msg.includes("401") || msg.toLowerCase().includes("api key") || msg.toLowerCase().includes("auth")) {
+      return res.status(500).json({ error: "GROQ_API_KEY not configured on server. Please add it to Render environment variables." });
     }
     return res.status(500).json({ error: "Something went wrong. Please try again." });
   }
