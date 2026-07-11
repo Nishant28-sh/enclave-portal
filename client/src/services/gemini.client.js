@@ -1,56 +1,46 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-const MODEL_CASCADE = ["gemini-2.0-flash", "gemini-2.0-flash-lite"];
+const MODELS = ["gemini-2.0-flash", "gemini-2.0-flash-lite"];
 
 let genAI = null;
 function getClient() {
   if (!genAI) {
     const key = import.meta.env.VITE_GEMINI_API_KEY;
-    if (!key) throw new Error("VITE_GEMINI_API_KEY is not set");
+    if (!key) throw { error: "API key not configured. Please contact support." };
     genAI = new GoogleGenerativeAI(key);
   }
   return genAI;
 }
 
-const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-
-export async function sendChatMessage(userMessage, history = [], modelIndex = 0, attempt = 1) {
-  if (modelIndex >= MODEL_CASCADE.length) {
-    // All models rate-limited — wait 65s then retry from first model once more
-    if (attempt === 1) {
-      await sleep(65000);
-      return sendChatMessage(userMessage, history, 0, 2);
-    }
-    throw { error: "Service is busy. Please wait a minute and try again." };
+/**
+ * Send a chat message to Gemini.
+ * Falls back to next model on 429 — no retries to avoid quota waste.
+ */
+export async function sendChatMessage(userMessage, history = [], modelIndex = 0) {
+  if (modelIndex >= MODELS.length) {
+    throw { error: "AI is busy right now. Please wait 1 minute and try again." };
   }
 
-  const modelName = MODEL_CASCADE[modelIndex];
-  const model = getClient().getGenerativeModel({ model: modelName });
+  const model = getClient().getGenerativeModel({ model: MODELS[modelIndex] });
 
-  // Strip leading model turns (Gemini needs history to start with "user")
-  const safeHistory = [...history];
-  while (safeHistory.length > 0 && safeHistory[0].role !== "user") {
-    safeHistory.shift();
-  }
+  // History must start with "user" role
+  const safe = [...history];
+  while (safe.length > 0 && safe[0].role !== "user") safe.shift();
 
-  // Strip extra fields like `ts` — SDK only accepts { role, parts }
-  const cleanHistory = safeHistory.map(({ role, parts }) => ({
+  // Strip extra fields (ts etc.) — Gemini SDK only accepts { role, parts }
+  const clean = safe.map(({ role, parts }) => ({
     role,
     parts: parts.map(({ text }) => ({ text })),
   }));
 
   try {
-    const chat = model.startChat({ history: cleanHistory });
+    const chat = model.startChat({ history: clean });
     const result = await chat.sendMessage(userMessage);
     return { reply: result.response.text() };
   } catch (err) {
-    const msg = err.message || "";
-    if (msg.includes("429")) {
-      // Try next model immediately
-      return sendChatMessage(userMessage, history, modelIndex + 1, attempt);
-    }
-    if (msg.includes("API key") || msg.includes("401")) {
-      throw { error: "Please set VITE_GEMINI_API_KEY in Vercel environment variables." };
+    if ((err.message || "").includes("429")) {
+      // Try next model — no sleep, no retries (saves quota)
+      return sendChatMessage(userMessage, history, modelIndex + 1);
     }
     throw { error: "Something went wrong. Please try again." };
   }
