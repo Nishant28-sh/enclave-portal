@@ -1,54 +1,47 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import Groq from "groq-sdk";
 
-let genAI;
+let groq;
 function getClient() {
-  if (!genAI) genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-  return genAI;
+  if (!groq) groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+  return groq;
 }
 
-// Primary model + fallback — if one is rate-limited, try the next
-const MODEL_CASCADE = [
-  "gemini-2.0-flash",
-  "gemini-2.0-flash-lite",
-];
+const SYSTEM_PROMPT =
+  "You are Enclave AI, a helpful and friendly AI assistant. " +
+  "Answer clearly and concisely. If asked about yourself, say you are Enclave AI powered by Llama.";
 
 /**
- * Sends a message to Gemini with conversation history.
- * Falls back to next model automatically if rate-limited (429).
+ * Sends a message to Groq (Llama model) with conversation history.
  *
- * history items from client may contain extra fields (e.g. ts) —
- * these are stripped before sending to the SDK.
+ * history items from client:
+ * [{ role: "user"|"model", parts: [{ text: "..." }], ts: ... }]
+ *
+ * Groq uses OpenAI format:
+ * [{ role: "user"|"assistant", content: "..." }]
  */
-export async function getChatResponse(history = [], userMessage, modelIndex = 0) {
-  if (modelIndex >= MODEL_CASCADE.length) {
-    throw new Error("429");
-  }
-
-  const modelName = MODEL_CASCADE[modelIndex];
-  const model = getClient().getGenerativeModel({ model: modelName });
-
-  // Strip leading model turns — Gemini requires history to start with "user"
+export async function getChatResponse(history = [], userMessage) {
+  // Convert Gemini-format history to Groq/OpenAI format
+  // Strip leading "model" turns, convert "model" -> "assistant", drop extra fields
   const safeHistory = [...history];
   while (safeHistory.length > 0 && safeHistory[0].role !== "user") {
     safeHistory.shift();
   }
 
-  // Strip extra client-side fields (ts etc.) — SDK only accepts { role, parts }
-  const cleanHistory = safeHistory.map(({ role, parts }) => ({
-    role,
-    parts: parts.map(({ text }) => ({ text })),
-  }));
+  const messages = [
+    { role: "system", content: SYSTEM_PROMPT },
+    ...safeHistory.map(({ role, parts }) => ({
+      role: role === "model" ? "assistant" : "user",
+      content: parts.map((p) => p.text).join(""),
+    })),
+    { role: "user", content: userMessage },
+  ];
 
-  try {
-    const chat = model.startChat({ history: cleanHistory });
-    const result = await chat.sendMessage(userMessage);
-    return result.response.text();
-  } catch (err) {
-    const is429 = err.message?.includes("429") || err.status === 429;
-    if (is429) {
-      console.warn(`[Gemini] ${modelName} rate-limited, trying fallback...`);
-      return getChatResponse(history, userMessage, modelIndex + 1);
-    }
-    throw err;
-  }
+  const response = await getClient().chat.completions.create({
+    model: "llama-3.1-8b-instant", // Fast, free, 14400 req/day
+    messages,
+    max_tokens: 1024,
+    temperature: 0.7,
+  });
+
+  return response.choices[0].message.content;
 }
